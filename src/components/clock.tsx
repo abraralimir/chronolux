@@ -7,7 +7,7 @@ type ClockProps = {
 };
 
 const Clock = ({ tagline }: ClockProps) => {
-  const [time, setTime] = useState(new Date());
+  const [time, setTime] = useState<Date | null>(null);
   const frameId = useRef<number>();
 
   useEffect(() => {
@@ -27,6 +27,20 @@ const Clock = ({ tagline }: ClockProps) => {
       }
     };
   }, []);
+
+  if (!time) {
+    // Render a static or empty state on the server and initial client render
+    // to prevent hydration mismatch. The actual clock will be rendered
+    // once the useEffect runs on the client.
+    return (
+        <div className="h-full w-full">
+            <svg viewBox="0 0 100 100" className="h-full w-full">
+                 <circle cx="50" cy="50" r="48" fill="hsl(var(--background))" stroke="hsl(var(--border))" strokeWidth="1" />
+                 <circle cx="50" cy="50" r="46" fill="transparent" stroke="hsl(var(--primary))" strokeWidth="0.5" />
+            </svg>
+        </div>
+    );
+  }
 
   const hours = time.getHours();
   const minutes = time.getMinutes();
