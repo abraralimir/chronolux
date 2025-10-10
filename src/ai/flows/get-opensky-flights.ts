@@ -33,7 +33,7 @@ const getFlights = async (airportIcao: string): Promise<FlightState[]> => {
     try {
         const [arrivalsResponse, departuresResponse] = await Promise.all([
             fetch(`${API_BASE_URL}/flights/arrival?airport=${airportIcao}&begin=${oneHourAgo}&end=${now}`),
-            fetch(`${API_BADE_URL}/flights/departure?airport=${airportIcao}&begin=${oneHourAgo}&end=${now}`)
+            fetch(`${API_BASE_URL}/flights/departure?airport=${airportIcao}&begin=${oneHourAgo}&end=${now}`)
         ]);
 
         if (!arrivalsResponse.ok || !departuresResponse.ok) {
