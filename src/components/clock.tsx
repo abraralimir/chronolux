@@ -11,27 +11,26 @@ const Clock = ({ tagline }: ClockProps) => {
   const frameId = useRef<number>();
 
   useEffect(() => {
-    // Set the initial time on the client to avoid hydration mismatch
-    setTime(new Date());
-    
     const animate = () => {
       setTime(new Date());
       frameId.current = requestAnimationFrame(animate);
     };
 
+    // Set the initial time and start the animation
+    setTime(new Date());
     frameId.current = requestAnimationFrame(animate);
 
+    // Cleanup function to cancel the animation frame on component unmount
     return () => {
       if (frameId.current) {
         cancelAnimationFrame(frameId.current);
       }
     };
-  }, []);
+  }, []); // Empty dependency array ensures this effect runs only once
 
   if (!time) {
     // Render a static or empty state on the server and initial client render
-    // to prevent hydration mismatch. The actual clock will be rendered
-    // once the useEffect runs on the client.
+    // to prevent hydration mismatch.
     return (
         <div className="h-full w-full">
             <svg viewBox="0 0 100 100" className="h-full w-full">
