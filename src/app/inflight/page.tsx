@@ -96,30 +96,13 @@ const GamesView = () => {
 
 const EntertainmentView = () => {
   const [selectedMovie, setSelectedMovie] = useState<Video | null>(null);
-  const [movies, setMovies] = useState<Video[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchMovies = async () => {
-        setIsLoading(true);
-        try {
-            const response = await fetch('/api/videos');
-            if (!response.ok) {
-                throw new Error('Failed to fetch videos');
-            }
-            const data = await response.json();
-            setMovies(data.videos || []);
-        } catch (error) {
-            console.error('Error fetching videos:', error);
-            setMovies([]);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    fetchMovies();
-  }, []);
-
+  // Hardcoded video data
+  const movie: Video = {
+    id: 'karan-aujla-video',
+    title: 'For A Reason - Karan Aujla',
+    src: 'https://83bfuugzvcaxxnfj.public.blob.vercel-storage.com/For%20A%20Reason%20%28Official%20Video%29%20Karan%20Aujla%20_%20Tania%20%20_%20Ikky%20_%20Latest%20Punjabi%20Songs%202025-Cdds7YtiwFxFjVLvMBBxP0wiENRxsZ.mp4',
+  };
 
   if (selectedMovie) {
     return (
@@ -136,37 +119,27 @@ const EntertainmentView = () => {
       </div>
     )
   }
-  
-  if (isLoading) {
-      return <Loader2 className="h-12 w-12 animate-spin text-primary" />;
-  }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
-        {movies && movies.length > 0 ? (
-            movies.map(movie => (
-                <Card 
-                    key={movie.id}
-                    className="cursor-pointer group relative overflow-hidden bg-card/50 backdrop-blur-lg border-white/20 transition-all hover:shadow-primary/50 hover:shadow-lg hover:-translate-y-1"
-                    onClick={() => setSelectedMovie(movie)}
-                >
-                     <Image 
-                        src={`https://picsum.photos/seed/${movie.id}/400/225`}
-                        alt={movie.title}
-                        width={400}
-                        height={225}
-                        data-ai-hint="movie poster"
-                        className="w-full object-cover transition-transform group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                    <CardHeader className="absolute bottom-0 left-0 w-full">
-                        <CardTitle className="text-white">{movie.title}</CardTitle>
-                    </CardHeader>
-                </Card>
-            ))
-        ) : (
-            <p className="text-white col-span-full text-center">No videos found. <Link href="/admin" className="underline hover:text-primary">Upload videos in the admin panel.</Link></p>
-        )}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl justify-center">
+        <Card
+            key={movie.id}
+            className="cursor-pointer group relative overflow-hidden bg-card/50 backdrop-blur-lg border-white/20 transition-all hover:shadow-primary/50 hover:shadow-lg hover:-translate-y-1"
+            onClick={() => setSelectedMovie(movie)}
+        >
+             <Image
+                src={`https://picsum.photos/seed/${movie.id}/400/225`}
+                alt={movie.title}
+                width={400}
+                height={225}
+                data-ai-hint="music video"
+                className="w-full object-cover transition-transform group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+            <CardHeader className="absolute bottom-0 left-0 w-full">
+                <CardTitle className="text-white">{movie.title}</CardTitle>
+            </CardHeader>
+        </Card>
     </div>
   )
 }
@@ -207,19 +180,19 @@ export default function InflightPage() {
       default:
         return (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <CategoryCard 
+            <CategoryCard
                 icon={<Tv className="h-8 w-8 text-primary" />}
                 title="Entertainment"
                 description="Watch movies and TV shows."
                 onClick={() => setView('entertainment')}
             />
-            <CategoryCard 
+            <CategoryCard
                 icon={<Gamepad2 className="h-8 w-8 text-primary" />}
                 title="Games"
                 description="Play fun games to pass the time."
                 onClick={() => setView('games')}
             />
-            <CategoryCard 
+            <CategoryCard
                 icon={<PlaneTakeoff className="h-8 w-8 text-primary" />}
                 title="Flight Progress"
                 description="Track your flight's progress."
