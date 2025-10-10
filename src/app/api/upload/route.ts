@@ -10,20 +10,17 @@ export async function POST(request: Request): Promise<NextResponse> {
       request,
       onBeforeGenerateToken: async (pathname: string) => {
         return {
-          allowedContentTypes: ['video/mp4', 'video/quicktime'],
+          allowedContentTypes: ['video/mp4', 'video/quicktime', 'video/webm'],
           tokenPayload: JSON.stringify({
             // Optional: pass-through data to verify on completion
+            // For example, you could pass the user ID here.
           }),
         };
       },
       onUploadCompleted: async ({ blob, tokenPayload }) => {
-        console.log('blob upload completed', blob, tokenPayload);
-
-        try {
-          // In a real app, you would save the blob.url to a database here.
-        } catch (error) {
-          throw new Error('Could not process upload completion');
-        }
+        // This callback is called after the file is uploaded to Vercel Blob.
+        // You can perform any necessary actions here, like saving the blob.url to your database.
+        console.log('Blob upload completed', blob, tokenPayload);
       },
     });
 
@@ -32,7 +29,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     const message = (error as Error).message;
     return NextResponse.json(
       { error: message },
-      { status: 400, statusText: message }
+      { status: 400, statusText: 'Bad Request' }
     );
   }
 }
