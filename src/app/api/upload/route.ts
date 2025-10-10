@@ -9,7 +9,6 @@ export async function POST(request: Request): Promise<NextResponse> {
       body,
       request,
       onBeforeGenerateToken: async (pathname: string) => {
-        // This function runs on the server before generating a token for the client
         return {
           allowedContentTypes: ['video/mp4', 'video/quicktime'],
           tokenPayload: JSON.stringify({
@@ -18,22 +17,22 @@ export async function POST(request: Request): Promise<NextResponse> {
         };
       },
       onUploadCompleted: async ({ blob, tokenPayload }) => {
-        // This function runs on the server after upload is complete
         console.log('blob upload completed', blob, tokenPayload);
 
         try {
-          // You can perform any logic here, like saving the blob URL to a database
+          // In a real app, you would save the blob.url to a database here.
         } catch (error) {
-          throw new Error('Could not process upload');
+          throw new Error('Could not process upload completion');
         }
       },
     });
 
     return NextResponse.json(jsonResponse);
   } catch (error) {
+    const message = (error as Error).message;
     return NextResponse.json(
-      { error: (error as Error).message },
-      { status: 400 }
+      { error: message },
+      { status: 400, statusText: message }
     );
   }
 }
