@@ -9,7 +9,6 @@ import {
   Maximize,
   Minimize,
   Volume1,
-  Volume,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -114,7 +113,7 @@ export default function VideoPlayer({ src, title }: VideoPlayerProps) {
     
     if (!document.fullscreenElement) {
         playerRef.current.requestFullscreen().catch(err => {
-            alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+            console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
         });
     } else {
         document.exitFullscreen();
@@ -133,7 +132,7 @@ export default function VideoPlayer({ src, title }: VideoPlayerProps) {
     }
   };
   
-  const handleMouseMove = () => {
+  const handleUserActivity = () => {
     setShowControls(true);
     scheduleControlsHide();
   };
@@ -142,19 +141,31 @@ export default function VideoPlayer({ src, title }: VideoPlayerProps) {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
+
+    const currentRef = playerRef.current;
+
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     
     const handleKeyDown = (e: KeyboardEvent) => {
-        if(e.key === ' ') {
+        if(e.key === ' ' || e.key === 'k') {
             e.preventDefault();
             handlePlayPause();
         }
+        if(e.key === 'f') {
+            e.preventDefault();
+            handleFullscreenToggle();
+        }
+        if(e.key === 'm') {
+            e.preventDefault();
+            handleMuteToggle();
+        }
     }
-    playerRef.current?.addEventListener('keydown', handleKeyDown);
+    
+    currentRef?.addEventListener('keydown', handleKeyDown);
 
     return () => {
         document.removeEventListener('fullscreenchange', handleFullscreenChange);
-        playerRef.current?.removeEventListener('keydown', handleKeyDown);
+        currentRef?.removeEventListener('keydown', handleKeyDown);
     }
   }, [handlePlayPause]);
 
@@ -165,7 +176,8 @@ export default function VideoPlayer({ src, title }: VideoPlayerProps) {
     <div 
         ref={playerRef} 
         className="relative w-full aspect-video bg-black rounded-lg overflow-hidden group focus:outline-none" 
-        onMouseMove={handleMouseMove}
+        onMouseMove={handleUserActivity}
+        onTouchStart={handleUserActivity}
         onMouseLeave={() => isPlaying && scheduleControlsHide()}
         tabIndex={0}
     >
@@ -179,26 +191,27 @@ export default function VideoPlayer({ src, title }: VideoPlayerProps) {
         onEnded={() => setIsPlaying(false)}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
+        playsInline // This is important for iOS
       />
 
       {/* Main Play/Pause Button */}
        <div className={cn("absolute inset-0 flex items-center justify-center transition-all duration-300 z-10", 
         showControls ? "opacity-100" : "opacity-0 pointer-events-none")}>
-         <Button variant="ghost" size="icon" onClick={handlePlayPause} className="text-white bg-black/30 backdrop-blur-sm rounded-full w-20 h-20 hover:bg-black/50 transition-colors">
-            {isPlaying ? <Pause className="h-10 w-10" /> : <Play className="h-10 w-10 ml-1" />}
+         <Button variant="ghost" size="icon" onClick={handlePlayPause} className="text-white bg-black/30 backdrop-blur-sm rounded-full w-16 h-16 md:w-20 md:h-20 hover:bg-black/50 transition-colors">
+            {isPlaying ? <Pause className="h-8 w-8 md:h-10 md:w-10" /> : <Play className="h-8 w-8 md:h-10 md:w-10 ml-1" />}
         </Button>
       </div>
 
       {/* Controls Overlay */}
       <div 
         className={cn(
-            "absolute bottom-0 left-0 right-0 p-4 z-10 transition-opacity duration-300",
-            showControls ? "opacity-100" : "opacity-0"
+            "absolute bottom-0 left-0 right-0 p-2 md:p-4 z-20 transition-all duration-300",
+            showControls ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
       >
-        <div className="bg-black/30 backdrop-blur-md rounded-lg p-3">
+        <div className="bg-black/30 backdrop-blur-md rounded-lg p-2 md:p-3">
             {/* Progress Bar */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 md:gap-3">
                 <span className="text-white text-xs font-mono w-12 text-center">{formatTime(progress)}</span>
                 <Slider
                     value={[progress]}
@@ -214,29 +227,32 @@ export default function VideoPlayer({ src, title }: VideoPlayerProps) {
 
             {/* Controls */}
             <div className="flex items-center justify-between mt-2">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 md:gap-2">
                     <Button variant="ghost" size="icon" onClick={handlePlayPause} className="text-white hover:bg-white/20">
-                        {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
+                        {isPlaying ? <Pause className="h-5 w-5 md:h-6 md:w-6" /> : <Play className="h-5 w-5 md:h-6 md:w-6" />}
                     </Button>
 
-                    <div className="flex items-center gap-2 w-32 group/volume">
+                    <div className="flex items-center gap-2 w-24 md:w-32 group/volume">
                         <Button variant="ghost" size="icon" onClick={handleMuteToggle} className="text-white hover:bg-white/20">
-                            <VolumeIcon className="h-6 w-6" />
+                            <VolumeIcon className="h-5 w-5 md:h-6 md:w-6" />
                         </Button>
                         <Slider
                             value={[isMuted ? 0 : volume]}
                             max={1}
                             step={0.05}
                             onValueChange={handleVolumeChange}
-                            className="w-full cursor-pointer opacity-0 group-hover/volume:opacity-100 transition-opacity"
+                            className="w-full cursor-pointer opacity-0 group-hover/volume:opacity-100 transition-opacity hidden sm:block"
                         />
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <span className="text-white text-sm font-semibold">{title}</span>
+                <div className="flex-1 text-center hidden sm:block">
+                     <span className="text-white text-sm font-semibold truncate px-4">{title}</span>
+                </div>
+
+                <div className="flex items-center gap-1 md:gap-2">
                     <Button variant="ghost" size="icon" onClick={handleFullscreenToggle} className="text-white hover:bg-white/20">
-                        {isFullscreen ? <Minimize className="h-6 w-6" /> : <Maximize className="h-6 w-6" />}
+                        {isFullscreen ? <Minimize className="h-5 w-5 md:h-6 md:w-6" /> : <Maximize className="h-5 w-5 md:h-6 md:w-6" />}
                     </Button>
                 </div>
             </div>
