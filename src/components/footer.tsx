@@ -19,9 +19,12 @@ const CountdownTimer = () => {
     return timeLeft;
   };
 
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+  const [timeLeft, setTimeLeft] = useState<{ [key: string]: number }>({});
 
   useEffect(() => {
+    // Set initial time on client to avoid hydration mismatch
+    setTimeLeft(calculateTimeLeft());
+
     const timer = setTimeout(() => {
       setTimeLeft(calculateTimeLeft());
     }, 1000);
@@ -32,7 +35,7 @@ const CountdownTimer = () => {
   const timerComponents: JSX.Element[] = [];
 
   Object.keys(timeLeft).forEach((interval) => {
-    if (!timeLeft[interval] && timeLeft[interval] !== 0) {
+    if (timeLeft[interval] === undefined) {
       return;
     }
     timerComponents.push(

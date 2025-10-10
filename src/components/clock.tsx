@@ -11,6 +11,9 @@ const Clock = ({ tagline }: ClockProps) => {
   const frameId = useRef<number>();
 
   useEffect(() => {
+    // Set the initial time on the client to avoid hydration mismatch
+    setTime(new Date());
+    
     const animate = () => {
       setTime(new Date());
       frameId.current = requestAnimationFrame(animate);
