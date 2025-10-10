@@ -1,5 +1,8 @@
 import { kv } from '@vercel/kv';
 import { NextResponse } from 'next/server';
+import { config } from 'dotenv';
+
+config();
 
 export async function GET(request: Request): Promise<NextResponse> {
   try {
