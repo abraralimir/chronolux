@@ -7,10 +7,10 @@ export const useVideoPlayer = (
   containerRef: RefObject<HTMLDivElement>
 ) => {
   const [playerState, setPlayerState] = useState({
-    isPlaying: false,
+    isPlaying: true, // Start as playing due to autoPlay
     progress: 0,
     speed: 1,
-    isMuted: false,
+    isMuted: true, // Start as muted
     isFullScreen: false,
     duration: 0,
   });
@@ -19,22 +19,18 @@ export const useVideoPlayer = (
     const video = videoRef.current;
     if (!video) return;
 
-    const newIsPlaying = !playerState.isPlaying;
-    setPlayerState(prevState => ({ ...prevState, isPlaying: newIsPlaying }));
-
     try {
-      if (newIsPlaying) {
-        await video.play();
-      } else {
-        video.pause();
-      }
+      const newIsPlaying = !video.paused;
+       if (newIsPlaying) {
+          await video.play();
+       } else {
+          video.pause();
+       }
+       setPlayerState(prevState => ({ ...prevState, isPlaying: newIsPlaying }));
     } catch (error) {
       console.error("Video play/pause failed", error);
-      // If an error occurs, revert the state
-      setPlayerState(prevState => ({ ...prevState, isPlaying: !newIsPlaying }));
     }
-  }, [playerState.isPlaying, videoRef]);
-
+  }, [videoRef]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -116,6 +112,34 @@ export const useVideoPlayer = (
         video.removeEventListener('ended', handleVideoEnded);
        }
     }
+  }, [videoRef]);
+
+  // Sync state with video element properties
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const syncState = () => {
+        setPlayerState(prev => ({
+            ...prev,
+            isPlaying: !video.paused,
+            isMuted: video.muted
+        }));
+    }
+
+    video.addEventListener('play', syncState);
+    video.addEventListener('pause', syncState);
+    video.addEventListener('volumechange', syncState);
+
+    // Initial sync
+    syncState();
+
+    return () => {
+        video.removeEventListener('play', syncState);
+        video.removeEventListener('pause', syncState);
+        video.removeEventListener('volumechange', syncState);
+    }
+
   }, [videoRef]);
 
   return {

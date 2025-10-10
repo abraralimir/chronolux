@@ -72,15 +72,19 @@ export default function VideoPlayer({ src, title }: VideoPlayerProps) {
     >
       <video
         ref={videoRef}
-        src={src}
         title={title}
         className="w-full h-full object-contain"
         onTimeUpdate={handleOnTimeUpdate}
         onLoadedMetadata={() => handleOnTimeUpdate()} // Set initial duration
         onEnded={togglePlay} // Pause when ended
-        playsInline // Crucial for iOS Safari
         preload="metadata"
-      />
+        autoPlay
+        muted
+        playsInline // Crucial for iOS Safari
+      >
+        <source src={src} type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
       <div
         className={`absolute inset-0 transition-opacity duration-300 ${
           showControls || !playerState.isPlaying ? 'opacity-100' : 'opacity-0'
