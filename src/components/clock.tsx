@@ -1,54 +1,54 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 type ClockProps = {
   tagline: string;
 };
 
 const Clock = ({ tagline }: ClockProps) => {
-  const [time, setTime] = useState<Date | null>(null);
+  const hourHandRef = useRef<SVGLineElement>(null);
+  const minuteHandRef = useRef<SVGLineElement>(null);
+  const secondHandRef = useRef<SVGLineElement>(null);
+  const secondHandTailRef = useRef<SVGLineElement>(null);
   const frameId = useRef<number>();
 
   useEffect(() => {
     const animate = () => {
-      setTime(new Date());
+      const time = new Date();
+      const hours = time.getHours();
+      const minutes = time.getMinutes();
+      const seconds = time.getSeconds();
+      const milliseconds = time.getMilliseconds();
+
+      const hourDeg = (hours % 12) * 30 + minutes * 0.5;
+      const minuteDeg = minutes * 6 + seconds * 0.1;
+      const secondDeg = seconds * 6 + milliseconds * 0.006;
+
+      if (hourHandRef.current) {
+        hourHandRef.current.style.transform = `rotate(${hourDeg}deg)`;
+      }
+      if (minuteHandRef.current) {
+        minuteHandRef.current.style.transform = `rotate(${minuteDeg}deg)`;
+      }
+      if (secondHandRef.current) {
+        secondHandRef.current.style.transform = `rotate(${secondDeg}deg)`;
+      }
+      if (secondHandTailRef.current) {
+        secondHandTailRef.current.style.transform = `rotate(${secondDeg}deg)`;
+      }
+
       frameId.current = requestAnimationFrame(animate);
     };
 
-    // Set the initial time and start the animation
-    setTime(new Date());
     frameId.current = requestAnimationFrame(animate);
 
-    // Cleanup function to cancel the animation frame on component unmount
     return () => {
       if (frameId.current) {
         cancelAnimationFrame(frameId.current);
       }
     };
-  }, []); // Empty dependency array ensures this effect runs only once
-
-  if (!time) {
-    // Render a static or empty state on the server and initial client render
-    // to prevent hydration mismatch.
-    return (
-        <div className="h-full w-full">
-            <svg viewBox="0 0 100 100" className="h-full w-full">
-                 <circle cx="50" cy="50" r="48" fill="hsl(var(--background))" stroke="hsl(var(--border))" strokeWidth="1" />
-                 <circle cx="50" cy="50" r="46" fill="transparent" stroke="hsl(var(--primary))" strokeWidth="0.5" />
-            </svg>
-        </div>
-    );
-  }
-
-  const hours = time.getHours();
-  const minutes = time.getMinutes();
-  const seconds = time.getSeconds();
-  const milliseconds = time.getMilliseconds();
-
-  const hourDeg = (hours % 12) * 30 + minutes * 0.5;
-  const minuteDeg = minutes * 6 + seconds * 0.1;
-  const secondDeg = seconds * 6 + milliseconds * 0.006;
+  }, []);
 
   const renderHourMarkers = () => {
     const markers = [];
@@ -111,6 +111,7 @@ const Clock = ({ tagline }: ClockProps) => {
         {/* Hands */}
         {/* Hour Hand */}
         <line
+          ref={hourHandRef}
           x1="50"
           y1="50"
           x2="50"
@@ -118,10 +119,11 @@ const Clock = ({ tagline }: ClockProps) => {
           stroke="hsl(var(--foreground))"
           strokeWidth="2"
           strokeLinecap="round"
-          transform={`rotate(${hourDeg} 50 50)`}
+          style={{ transformOrigin: '50% 50%' }}
         />
         {/* Minute Hand */}
         <line
+          ref={minuteHandRef}
           x1="50"
           y1="50"
           x2="50"
@@ -129,19 +131,21 @@ const Clock = ({ tagline }: ClockProps) => {
           stroke="hsl(var(--foreground))"
           strokeWidth="1.5"
           strokeLinecap="round"
-          transform={`rotate(${minuteDeg} 50 50)`}
+          style={{ transformOrigin: '50% 50%' }}
         />
         {/* Second Hand */}
         <line
+          ref={secondHandRef}
           x1="50"
           y1="52"
           x2="50"
           y2="10"
           stroke="hsl(var(--primary))"
           strokeWidth="0.75"
-          transform={`rotate(${secondDeg} 50 50)`}
+          style={{ transformOrigin: '50% 50%' }}
         />
          <line
+          ref={secondHandTailRef}
           x1="50"
           y1="50"
           x2="50"
@@ -149,7 +153,7 @@ const Clock = ({ tagline }: ClockProps) => {
           stroke="hsl(var(--primary))"
           strokeWidth="2"
           strokeLinecap="round"
-          transform={`rotate(${secondDeg} 50 50)`}
+          style={{ transformOrigin: '50% 50%' }}
         />
         
         {/* Center Pin */}
