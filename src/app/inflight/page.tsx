@@ -98,11 +98,18 @@ const EntertainmentView = () => {
   const [selectedMovie, setSelectedMovie] = useState<Video | null>(null);
 
   // Hardcoded video data
-  const movie: Video = {
-    id: 'karan-aujla-video',
-    title: 'For A Reason - Karan Aujla',
-    src: 'https://83bfuugzvcaxxnfj.public.blob.vercel-storage.com/For%20A%20Reason%20%28Official%20Video%29%20Karan%20Aujla%20_%20Tania%20%20_%20Ikky%20_%20Latest%20Punjabi%20Songs%202025-Cdds7YtiwFxFjVLvMBBxP0wiENRxsZ.mp4',
-  };
+  const movies: Video[] = [
+    {
+      id: 'karan-aujla-video',
+      title: 'For A Reason - Karan Aujla',
+      src: 'https://83bfuugzvcaxxnfj.public.blob.vercel-storage.com/For%20A%20Reason%20%28Official%20Video%29%20Karan%20Aujla%20_%20Tania%20%20_%20Ikky%20_%20Latest%20Punjabi%20Songs%202025-Cdds7YtiwFxFjVLvMBBxP0wiENRxsZ.mp4',
+    },
+    {
+        id: 'shinchan-cartoon',
+        title: 'Shinchan Cartoon',
+        src: 'https://83bfuugzvcaxxnfj.public.blob.vercel-storage.com/videoplayback%20%281%29.mp4',
+    }
+  ];
 
   if (selectedMovie) {
     return (
@@ -122,6 +129,7 @@ const EntertainmentView = () => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl justify-center">
+      {movies.map((movie) => (
         <Card
             key={movie.id}
             className="cursor-pointer group relative overflow-hidden bg-card/50 backdrop-blur-lg border-white/20 transition-all hover:shadow-primary/50 hover:shadow-lg hover:-translate-y-1"
@@ -132,7 +140,7 @@ const EntertainmentView = () => {
                 alt={movie.title}
                 width={400}
                 height={225}
-                data-ai-hint="music video"
+                data-ai-hint={movie.id === 'karan-aujla-video' ? 'music video' : 'cartoon animation'}
                 className="w-full object-cover transition-transform group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
@@ -140,6 +148,7 @@ const EntertainmentView = () => {
                 <CardTitle className="text-white">{movie.title}</CardTitle>
             </CardHeader>
         </Card>
+      ))}
     </div>
   )
 }
