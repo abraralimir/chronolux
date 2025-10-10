@@ -41,14 +41,16 @@ const Clock = ({ tagline }: ClockProps) => {
       frameId.current = requestAnimationFrame(animate);
     };
 
+    // Start the animation.
     frameId.current = requestAnimationFrame(animate);
 
+    // Clean up the animation frame on component unmount.
     return () => {
       if (frameId.current) {
         cancelAnimationFrame(frameId.current);
       }
     };
-  }, []);
+  }, []); // Empty dependency array ensures this effect runs only once.
 
   const renderHourMarkers = () => {
     const markers = [];
