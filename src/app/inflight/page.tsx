@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -154,6 +155,7 @@ const EntertainmentView = () => {
                         alt={movie.title}
                         width={400}
                         height={225}
+                        data-ai-hint="movie poster"
                         className="w-full object-cover transition-transform group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />

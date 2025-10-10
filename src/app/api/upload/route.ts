@@ -1,3 +1,4 @@
+
 import { put } from '@vercel/blob';
 import { kv } from '@vercel/kv';
 import { NextResponse } from 'next/server';
@@ -19,8 +20,10 @@ export async function POST(request: Request): Promise<NextResponse> {
     });
 
     // After successful upload, save metadata to Vercel KV
+    // Use a unique ID instead of relying on the blob pathname
+    const videoId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
     const video = {
-      id: blob.pathname,
+      id: videoId,
       title: filename.replace(/\.[^/.]+$/, ""), // Remove file extension for title
       src: blob.url,
     };
