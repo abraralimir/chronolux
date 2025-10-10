@@ -1,0 +1,34 @@
+{
+  "placeholderImages": [
+    {
+      "id": "for-a-reason",
+      "description": "Thumbnail for the music video 'For A Reason'",
+      "imageUrl": "https://picsum.photos/seed/reason/400/225",
+      "imageHint": "music video"
+    },
+    {
+      "id": "funny-animation",
+      "description": "Thumbnail for a funny animation video",
+      "imageUrl": "https://picsum.photos/seed/animation/400/225",
+      "imageHint": "cartoon animation"
+    },
+    {
+      "id": "glenn-miller",
+      "description": "Artwork for Glenn Miller's 'In the Mood'",
+      "imageUrl": "https://picsum.photos/seed/glenn/512/512",
+      "imageHint": "jazz music"
+    },
+    {
+      "id": "herb-alpert",
+      "description": "Artwork for Herb Alpert's 'A Taste of Honey'",
+      "imageUrl": "https://picsum.photos/seed/honey/512/512",
+      "imageHint": "brass band"
+    },
+    {
+      "id": "frank-sinatra",
+      "description": "Artwork for Frank Sinatra's 'Come Fly With Me'",
+      "imageUrl": "https://picsum.photos/seed/sinatra/512/512",
+      "imageHint": "vintage airplane"
+    }
+  ]
+}

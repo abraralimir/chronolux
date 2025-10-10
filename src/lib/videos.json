@@ -1,0 +1,14 @@
+{
+    "videos": [
+        {
+            "id": "for-a-reason",
+            "title": "For a Reason - Music Video",
+            "src": "https://444-player.vercel.app/For A Reason - Official Music Video.mp4"
+        },
+        {
+            "id": "funny-animation",
+            "title": "Funny Animation",
+            "src": "https://444-player.vercel.app/Funny Animation.mp4"
+        }
+    ]
+}

@@ -1,0 +1,76 @@
+/**
+ * @fileoverview Firestore Security Rules for ChronoLux app.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model. Users can only create, read, update,
+ * and delete their own data. This is achieved through path-based rules and explicit
+ * ownership checks using the `request.auth.uid`.
+ *
+ * Data Structure:
+ * - /users/{userId}: Stores user profile information, where {userId} matches the Firebase Auth UID.
+ * - /users/{userId}/videos/{videoId}: Stores videos uploaded by each user, nested under their
+ *   respective user ID.
+ *
+ * Key Security Decisions:
+ * - User data is private and only accessible to the authenticated user.
+ * - Videos are private and only accessible to the user who uploaded them.
+ * - Data consistency between the path and the document's internal `userId` field is enforced on `create` and `update`.
+ * - Listing of users is disallowed, preventing enumeration attacks. Only the owner can list their videos.
+ *
+ * Denormalization for Authorization:
+ * - The `userId` is denormalized into the video documents, enabling rules to authorize access
+ *   based on the document's data without additional `get()` calls.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Protects the user profile collection. Only the authenticated user can read and write their own profile.
+     * @path /users/{userId}
+     * @allow (create) - User with UID 'user_abc' can create their profile document at /users/user_abc.
+     * @allow (get) - User with UID 'user_abc' can read their profile document at /users/user_abc.
+     * @allow (update) - User with UID 'user_abc' can update their profile document at /users/user_abc.
+     * @allow (delete) - User with UID 'user_abc' can delete their profile document at /users/user_abc.
+     * @deny (create) - User with UID 'user_xyz' cannot create a profile document at /users/user_abc.
+     * @deny (get) - User with UID 'user_xyz' cannot read the profile document at /users/user_abc.
+     * @principle Enforces document ownership for all operations on user profiles.
+     */
+    match /users/{userId} {
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      allow get: if isOwner(userId);
+      allow list: if false; // Prevent listing of all users.
+
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isOwner(userId) && resource.data.id == request.resource.data.id;
+      allow delete: if isOwner(userId) && resource != null;
+    }
+
+    /**
+     * @description Protects the video subcollection. Only the authenticated user can create, read, update, and delete their own videos.
+     * @path /users/{userId}/videos/{videoId}
+     * @allow (create) - User with UID 'user_abc' can create a video document at /users/user_abc/videos/video_123.
+     * @allow (get) - User with UID 'user_abc' can read their video document at /users/user_abc/videos/video_123.
+     * @allow (update) - User with UID 'user_abc' can update their video document at /users/user_abc/videos/video_123.
+     * @allow (delete) - User with UID 'user_abc' can delete their video document at /users/user_abc/videos/video_123.
+     * @deny (create) - User with UID 'user_xyz' cannot create a video document at /users/user_abc/videos/video_123.
+     * @deny (get) - User with UID 'user_xyz' cannot read the video document at /users/user_abc/videos/video_123.
+     * @principle Enforces document ownership for all operations on user videos and validates relational integrity.
+     */
+    match /users/{userId}/videos/{videoId} {
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isOwner(userId) && resource != null && resource.data.userId == request.resource.data.userId;
+      allow delete: if isOwner(userId) && resource != null;
+    }
+  }
+}

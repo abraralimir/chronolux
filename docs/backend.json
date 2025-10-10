@@ -1,0 +1,132 @@
+{
+  "entities": {
+    "Video": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Video",
+      "type": "object",
+      "description": "Represents a video uploaded to Firebase for the ChronoLux app.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the video."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who uploaded the video. (Relationship: User 1:N Video)"
+        },
+        "uploadDate": {
+          "type": "string",
+          "description": "The date and time the video was uploaded.",
+          "format": "date-time"
+        },
+        "storagePath": {
+          "type": "string",
+          "description": "The path to the video file in Firebase Storage."
+        },
+        "duration": {
+          "type": "number",
+          "description": "The duration of the video in seconds."
+        },
+        "resolution": {
+          "type": "string",
+          "description": "The resolution of the video (e.g., 1920x1080)."
+        },
+        "fileSize": {
+          "type": "number",
+          "description": "The size of the video file in bytes."
+        },
+        "tagline": {
+          "type": "string",
+          "description": "The tagline associated to the video"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "uploadDate",
+        "storagePath",
+        "duration",
+        "resolution",
+        "fileSize"
+      ]
+    },
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the ChronoLux app.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
+        "username": {
+          "type": "string",
+          "description": "The username of the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the user.",
+          "format": "email"
+        },
+        "profileImageUrl": {
+          "type": "string",
+          "description": "URL of the user's profile image.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "id",
+        "username",
+        "email"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profile information.  This is a standard user collection.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user.  This matches the Firebase Auth UID."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/videos/{videoId}",
+        "definition": {
+          "entityName": "Video",
+          "schema": {
+            "$ref": "#/backend/entities/Video"
+          },
+          "description": "Stores videos uploaded by each user. Path-based ownership ensures that only the user can access their videos. Includes denormalized 'userId' for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user who owns the video. This matches the Firebase Auth UID."
+            },
+            {
+              "name": "videoId",
+              "description": "The unique identifier of the video."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The data structure prioritizes authorization independence and QAPs using path-based ownership for user videos. Each user has a dedicated collection for their videos, ensuring easy management and secure access. The `userId` is stored within each video document, eliminating the need for `get()` calls in security rules and supporting atomic operations. This structure also simplifies list operations by ensuring that each user can only access their own videos. This is an ideal approach given the 1:N relationship between users and videos."
+  }
+}
