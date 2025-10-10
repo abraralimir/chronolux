@@ -34,7 +34,7 @@ interface VideoControlsProps {
 }
 
 const formatTime = (time: number) => {
-  if (isNaN(time) || time === 0) return '00:00';
+  if (isNaN(time) || time < 0) return '00:00';
   const minutes = Math.floor(time / 60);
   const seconds = Math.floor(time % 60);
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
@@ -51,9 +51,9 @@ export default function VideoControls({
   title,
 }: VideoControlsProps) {
   return (
-    <div className="absolute inset-0 flex flex-col justify-between p-4 bg-gradient-to-t from-black/60 to-transparent">
-        <div className="text-white font-bold text-lg">{title}</div>
-        <div className="flex flex-col gap-2">
+    <div className="absolute inset-0 flex flex-col justify-between p-2 md:p-4 bg-gradient-to-t from-black/60 to-transparent pointer-events-none">
+        <div className="text-white font-bold text-sm md:text-lg pointer-events-auto">{title}</div>
+        <div className="flex flex-col gap-2 pointer-events-auto">
             <input
                 type="range"
                 min="0"
@@ -63,23 +63,23 @@ export default function VideoControls({
                 className="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-primary"
             />
             <div className="flex justify-between items-center text-white">
-                <div className="flex items-center gap-4">
-                    <button onClick={onPlayPause}>
+                <div className="flex items-center gap-2 md:gap-4">
+                    <button onClick={onPlayPause} className="p-1">
                         {playerState.isPlaying ? <Pause /> : <Play />}
                     </button>
-                    <button onClick={onMute}>
+                    <button onClick={onMute} className="p-1">
                         {playerState.isMuted ? <VolumeX /> : <Volume2 />}
                     </button>
-                    <div className="text-sm">
+                    <div className="text-xs md:text-sm font-mono">
                         {formatTime((playerState.progress / 100) * playerState.duration)} / {formatTime(playerState.duration)}
                     </div>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 md:gap-4">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <button className="flex items-center gap-1">
+                            <button className="flex items-center gap-1 p-1">
                                 <FastForward />
-                                <span className="text-sm">{playerState.speed}x</span>
+                                <span className="text-xs md:text-sm">{playerState.speed}x</span>
                             </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
@@ -90,7 +90,7 @@ export default function VideoControls({
                             ))}
                         </DropdownMenuContent>
                     </DropdownMenu>
-                    <button onClick={onToggleFullScreen}>
+                    <button onClick={onToggleFullScreen} className="p-1">
                         {playerState.isFullScreen ? <Minimize /> : <Maximize />}
                     </button>
                 </div>

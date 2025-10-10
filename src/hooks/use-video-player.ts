@@ -24,24 +24,28 @@ export const useVideoPlayer = (
 
   useEffect(() => {
     if (videoRef.current) {
-      playerState.isPlaying ? videoRef.current.play() : videoRef.current.pause();
+        if(playerState.isPlaying) {
+            videoRef.current.play().catch(e => console.error("Video play failed", e));
+        } else {
+            videoRef.current.pause();
+        }
     }
   }, [playerState.isPlaying, videoRef]);
 
   const handleOnTimeUpdate = () => {
-    if (videoRef.current) {
+    if (videoRef.current && videoRef.current.duration) {
       const progress = (videoRef.current.currentTime / videoRef.current.duration) * 100;
-      setPlayerState({
-        ...playerState,
+      setPlayerState((prevState) => ({
+        ...prevState,
         progress,
-        duration: videoRef.current.duration,
-      });
+        duration: videoRef.current?.duration || 0,
+      }));
     }
   };
 
   const handleVideoProgress = (event: React.ChangeEvent<HTMLInputElement>) => {
     const manualChange = Number(event.target.value);
-    if (videoRef.current) {
+    if (videoRef.current && !isNaN(videoRef.current.duration)) {
       videoRef.current.currentTime = (videoRef.current.duration / 100) * manualChange;
       setPlayerState({
         ...playerState,
@@ -62,10 +66,11 @@ export const useVideoPlayer = (
 
   const toggleMute = () => {
     if(videoRef.current){
-        videoRef.current.muted = !playerState.isMuted;
+        const newMutedState = !playerState.isMuted;
+        videoRef.current.muted = newMutedState;
         setPlayerState({
             ...playerState,
-            isMuted: !playerState.isMuted,
+            isMuted: newMutedState,
         });
     }
   };
@@ -77,19 +82,18 @@ export const useVideoPlayer = (
         container.requestFullscreen().catch(err => {
           console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
         });
-        setPlayerState(prev => ({ ...prev, isFullScreen: true }));
       } else {
         if (document.exitFullscreen) {
           document.exitFullscreen();
         }
-        setPlayerState(prev => ({ ...prev, isFullScreen: false }));
       }
     }
   };
 
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setPlayerState(prev => ({...prev, isFullScreen: !!document.fullscreenElement}));
+      const isFullScreen = !!document.fullscreenElement;
+      setPlayerState(prev => ({...prev, isFullScreen }));
     }
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => {

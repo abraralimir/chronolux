@@ -22,14 +22,13 @@ export default function VideoPlayer({ src, title }: VideoPlayerProps) {
     toggleFullScreen,
   } = useVideoPlayer(videoRef, videoContainerRef);
   const [showControls, setShowControls] = useState(true);
-  const [isInteracted, setIsInteracted] = useState(false);
   const controlsTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const hideControls = () => {
+  const hideControls = useCallback(() => {
     if (playerState.isPlaying) {
       setShowControls(false);
     }
-  };
+  }, [playerState.isPlaying]);
 
   const handleInteraction = useCallback(() => {
     setShowControls(true);
@@ -37,11 +36,14 @@ export default function VideoPlayer({ src, title }: VideoPlayerProps) {
       clearTimeout(controlsTimeout.current);
     }
     controlsTimeout.current = setTimeout(hideControls, 3000);
-  }, [playerState.isPlaying]);
+  }, [hideControls]);
 
-  const handlePlayPause = () => {
-    if (!isInteracted) setIsInteracted(true);
-    togglePlay();
+  const handleContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // We only toggle play/pause if the click is on the container itself,
+    // not on the controls overlay.
+    if ((e.target as HTMLElement).isEqualNode(videoContainerRef.current) || (e.target as HTMLElement).classList.contains('w-full')) {
+       togglePlay();
+    }
     handleInteraction();
   };
 
@@ -50,43 +52,44 @@ export default function VideoPlayer({ src, title }: VideoPlayerProps) {
     if (container) {
       container.addEventListener('mousemove', handleInteraction);
       container.addEventListener('touchstart', handleInteraction);
-      container.addEventListener('click', handlePlayPause);
     }
     return () => {
       if (container) {
         container.removeEventListener('mousemove', handleInteraction);
         container.removeEventListener('touchstart', handleInteraction);
-        container.removeEventListener('click', handlePlayPause);
       }
       if (controlsTimeout.current) {
         clearTimeout(controlsTimeout.current);
       }
     };
-  }, [handleInteraction, handlePlayPause]);
+  }, [handleInteraction]);
 
   return (
     <div
       ref={videoContainerRef}
-      className="relative w-full aspect-video bg-black rounded-lg overflow-hidden group focus:outline-none"
-      data-fullscreen={playerState.isFullScreen}
+      className="relative w-full aspect-video bg-black rounded-lg overflow-hidden group focus:outline-none cursor-pointer"
+      onClick={handleContainerClick}
     >
       <video
         ref={videoRef}
         src={src}
         title={title}
-        className="w-full h-full"
+        className="w-full h-full object-contain"
         onTimeUpdate={handleOnTimeUpdate}
-        onClick={handlePlayPause}
-        playsInline // Essential for mobile browsers
+        onLoadedMetadata={() => handleOnTimeUpdate()} // Set initial duration
+        onEnded={togglePlay} // Pause when ended
+        playsInline // Crucial for iOS Safari
         preload="metadata"
       />
       <div
         className={`absolute inset-0 transition-opacity duration-300 ${
           showControls || !playerState.isPlaying ? 'opacity-100' : 'opacity-0'
         }`}
+        // Prevent click event from bubbling up from controls to the container
+        onClick={(e) => e.stopPropagation()}
       >
         <VideoControls
-          onPlayPause={handlePlayPause}
+          onPlayPause={togglePlay}
           onMute={toggleMute}
           onSpeedChange={handleVideoSpeed}
           onProgressChange={handleVideoProgress}
