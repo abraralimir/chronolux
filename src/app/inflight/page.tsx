@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -103,12 +101,12 @@ const EntertainmentView = () => {
     {
       id: 'karan-aujla-video',
       title: 'For A Reason - Karan Aujla',
-      src: encodeURI('/For A Reason (Official Video) Karan Aujla _ Tania  _ Ikky _ Latest Punjabi Songs 2025.mp4'),
+      src: '/for-a-reason.mp4',
     },
     {
         id: 'shinchan-cartoon',
         title: 'Shinchan Cartoon',
-        src: encodeURI('/videoplayback (1).mp4'),
+        src: '/shinchan-cartoon.mp4',
     }
   ];
 
