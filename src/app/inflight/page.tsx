@@ -99,11 +99,24 @@ const EntertainmentView = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // In a real app, this data would come from a database.
-    // For now, we'll leave it empty and direct users to the admin page.
-    // const videos = await db.videos.findMany();
-    // setMovies(videos);
-    setIsLoading(false);
+    const fetchMovies = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch('/api/videos');
+            if (!response.ok) {
+                throw new Error('Failed to fetch videos');
+            }
+            const data = await response.json();
+            setMovies(data.videos || []);
+        } catch (error) {
+            console.error('Error fetching videos:', error);
+            setMovies([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    fetchMovies();
   }, []);
 
 
