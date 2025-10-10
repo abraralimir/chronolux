@@ -1,35 +1,28 @@
-import { handleUpload, type HandleUploadBody } from '@vercel/blob';
+import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request): Promise<NextResponse> {
-  const body = (await request.json()) as HandleUploadBody;
+  const { searchParams } = new URL(request.url);
+  const filename = searchParams.get('filename');
+
+  if (!filename || !request.body) {
+    return NextResponse.json(
+      { error: 'No filename or file body provided.' },
+      { status: 400 }
+    );
+  }
 
   try {
-    const jsonResponse = await handleUpload({
-      body,
-      request,
-      onBeforeGenerateToken: async (pathname: string) => {
-        return {
-          allowedContentTypes: ['video/mp4', 'video/quicktime', 'video/webm'],
-          tokenPayload: JSON.stringify({
-            // Optional: pass-through data to verify on completion
-            // For example, you could pass the user ID here.
-          }),
-        };
-      },
-      onUploadCompleted: async ({ blob, tokenPayload }) => {
-        // This callback is called after the file is uploaded to Vercel Blob.
-        // You can perform any necessary actions here, like saving the blob.url to your database.
-        console.log('Blob upload completed', blob, tokenPayload);
-      },
+    const blob = await put(filename, request.body, {
+      access: 'public',
     });
 
-    return NextResponse.json(jsonResponse);
+    return NextResponse.json(blob);
   } catch (error) {
     const message = (error as Error).message;
     return NextResponse.json(
-      { error: message },
-      { status: 400, statusText: 'Bad Request' }
+      { error: `Upload failed: ${message}` },
+      { status: 400 }
     );
   }
 }

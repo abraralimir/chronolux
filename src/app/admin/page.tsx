@@ -1,64 +1,65 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import type { PutBlobResult } from '@vercel/blob';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { put } from '@vercel/blob';
 
 export default function AdminPage() {
-  const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const inputFileRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
-    }
-  };
+  const handleUpload = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsUploading(true);
 
-  const handleUpload = async () => {
-    if (!file) {
+    if (!inputFileRef.current?.files) {
       toast({
         variant: 'destructive',
         title: 'No file selected',
         description: 'Please select a video file to upload.',
       });
+      setIsUploading(false);
       return;
     }
 
-    setIsUploading(true);
+    const file = inputFileRef.current.files[0];
 
     try {
-      const blob = await put(file.name, file, {
-        access: 'public',
-        handleUploadUrl: '/api/upload',
+      const response = await fetch(`/api/upload?filename=${file.name}`, {
+        method: 'POST',
+        body: file,
       });
 
-      // In a real app, you'd save blob.url to your database
-      console.log('File uploaded successfully:', blob.url);
-      
+      if (!response.ok) {
+        const { error } = await response.json();
+        throw new Error(error || 'Upload failed');
+      }
+
+      const newBlob = (await response.json()) as PutBlobResult;
+
+      console.log('File uploaded successfully:', newBlob.url);
       toast({
         title: 'Upload Complete',
-        description: `"${file.name}" has been successfully uploaded.`,
+        description: `"${newBlob.pathname}" has been successfully uploaded.`,
       });
-
     } catch (error) {
       console.error('Upload failed:', error);
+      const message = error instanceof Error ? error.message : 'Something went wrong.';
       toast({
         variant: 'destructive',
         title: 'Upload Failed',
-        description: 'Something went wrong during the upload. Please try again.',
+        description: message,
       });
     } finally {
-        setIsUploading(false);
-        setFile(null);
-        if(fileInputRef.current) {
-            fileInputRef.current.value = "";
-        }
+      setIsUploading(false);
+      if (inputFileRef.current) {
+        inputFileRef.current.value = '';
+      }
     }
   };
 
@@ -69,20 +70,43 @@ export default function AdminPage() {
           <CardTitle>Upload Video</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Input type="file" accept="video/mp4,video/quicktime,video/webm" onChange={handleFileChange} ref={fileInputRef} disabled={isUploading} />
-          
-          <Button onClick={handleUpload} disabled={!file || isUploading} className="w-full">
-            {isUploading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Uploading...</> : 'Upload'}
-          </Button>
+          <form onSubmit={handleUpload}>
+            <Input
+              name="file"
+              ref={inputFileRef}
+              type="file"
+              accept="video/mp4,video/quicktime,video/webm"
+              required
+              disabled={isUploading}
+            />
+            <Button
+              type="submit"
+              disabled={isUploading}
+              className="w-full mt-4"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Uploading...
+                </>
+              ) : (
+                'Upload'
+              )}
+            </Button>
+          </form>
 
           {isUploading && (
             <div className="flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="ml-4 text-sm text-muted-foreground">Uploading, please wait...</p>
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="ml-4 text-sm text-muted-foreground">
+                Uploading, please wait...
+              </p>
             </div>
           )}
 
-           <p className="text-xs text-muted-foreground text-center">After uploading, the URL will be available in the browser console. This will be integrated into the app later.</p>
+          <p className="text-xs text-muted-foreground text-center">
+            After uploading, the URL will be available in the browser console.
+            This will be integrated into the app later.
+          </p>
         </CardContent>
       </Card>
     </main>
