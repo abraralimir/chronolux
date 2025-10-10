@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, RefObject } from 'react';
+import { useState, useEffect, RefObject, useCallback } from 'react';
 
 export const useVideoPlayer = (
   videoRef: RefObject<HTMLVideoElement>,
@@ -15,22 +15,33 @@ export const useVideoPlayer = (
     duration: 0,
   });
 
-  const togglePlay = () => {
-    setPlayerState({
-      ...playerState,
-      isPlaying: !playerState.isPlaying,
-    });
-  };
+  const togglePlay = useCallback(async () => {
+    const video = videoRef.current;
+    if (!video) return;
 
-  useEffect(() => {
-    if (videoRef.current) {
-        if(playerState.isPlaying) {
-            videoRef.current.play().catch(e => console.error("Video play failed", e));
-        } else {
-            videoRef.current.pause();
-        }
+    const newIsPlaying = !playerState.isPlaying;
+    setPlayerState(prevState => ({ ...prevState, isPlaying: newIsPlaying }));
+
+    try {
+      if (newIsPlaying) {
+        await video.play();
+      } else {
+        video.pause();
+      }
+    } catch (error) {
+      console.error("Video play/pause failed", error);
+      // If an error occurs, revert the state
+      setPlayerState(prevState => ({ ...prevState, isPlaying: !newIsPlaying }));
     }
   }, [playerState.isPlaying, videoRef]);
+
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) {
+        video.muted = playerState.isMuted;
+    }
+  }, [playerState.isMuted, videoRef]);
 
   const handleOnTimeUpdate = () => {
     if (videoRef.current && videoRef.current.duration) {
@@ -42,6 +53,10 @@ export const useVideoPlayer = (
       }));
     }
   };
+  
+  const handleVideoEnded = () => {
+    setPlayerState(prevState => ({ ...prevState, isPlaying: false }));
+  }
 
   const handleVideoProgress = (event: React.ChangeEvent<HTMLInputElement>) => {
     const manualChange = Number(event.target.value);
@@ -65,14 +80,7 @@ export const useVideoPlayer = (
   };
 
   const toggleMute = () => {
-    if(videoRef.current){
-        const newMutedState = !playerState.isMuted;
-        videoRef.current.muted = newMutedState;
-        setPlayerState({
-            ...playerState,
-            isMuted: newMutedState,
-        });
-    }
+    setPlayerState(prevState => ({...prevState, isMuted: !prevState.isMuted }));
   };
 
   const toggleFullScreen = () => {
@@ -96,10 +104,19 @@ export const useVideoPlayer = (
       setPlayerState(prev => ({...prev, isFullScreen }));
     }
     document.addEventListener('fullscreenchange', handleFullscreenChange);
+
+    const video = videoRef.current;
+    if (video) {
+        video.addEventListener('ended', handleVideoEnded);
+    }
+
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
+       if (video) {
+        video.removeEventListener('ended', handleVideoEnded);
+       }
     }
-  }, []);
+  }, [videoRef]);
 
   return {
     playerState,
