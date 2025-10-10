@@ -102,12 +102,12 @@ const EntertainmentView = () => {
     {
       id: 'karan-aujla-video',
       title: 'For A Reason - Karan Aujla',
-      src: 'https://83bfuugzvcaxxnfj.public.blob.vercel-storage.com/For%20A%20Reason%20%28Official%20Video%29%20Karan%20Aujla%20_%20Tania%20%20_%20Ikky%20_%20Latest%20Punjabi%20Songs%202025-Cdds7YtiwFxFjVLvMBBxP0wiENRxsZ.mp4',
+      src: '/For A Reason (Official Video) Karan Aujla _ Tania  _ Ikky _ Latest Punjabi Songs 2025-Cdds7YtiwFxFjVLvMBBxP0wiENRxsZ.mp4',
     },
     {
         id: 'shinchan-cartoon',
         title: 'Shinchan Cartoon',
-        src: 'https://83bfuugzvcaxxnfj.public.blob.vercel-storage.com/videoplayback%20%281%29.mp4',
+        src: '/videoplayback (1).mp4',
     }
   ];
 
