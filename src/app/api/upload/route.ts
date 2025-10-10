@@ -1,9 +1,6 @@
 import { put } from '@vercel/blob';
 import { kv } from '@vercel/kv';
 import { NextResponse } from 'next/server';
-import { config } from 'dotenv';
-
-config();
 
 export async function POST(request: Request): Promise<NextResponse> {
   const { searchParams } = new URL(request.url);
@@ -36,9 +33,12 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json(blob);
   } catch (error) {
     const message = (error as Error).message;
+     console.error('Upload API Error:', message);
+     console.error('KV_URL:', process.env.KV_REST_API_URL ? 'Loaded' : 'MISSING');
+     console.error('KV_TOKEN:', process.env.KV_REST_API_TOKEN ? 'Loaded' : 'MISSING');
     return NextResponse.json(
       { error: `Upload failed: ${message}` },
-      { status: 400 }
+      { status: 500 }
     );
   }
 }
