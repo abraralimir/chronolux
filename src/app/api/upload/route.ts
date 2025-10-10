@@ -1,6 +1,9 @@
 import { put } from '@vercel/blob';
 import { kv } from '@vercel/kv';
 import { NextResponse } from 'next/server';
+import { config } from 'dotenv';
+
+config();
 
 export async function POST(request: Request): Promise<NextResponse> {
   const { searchParams } = new URL(request.url);
